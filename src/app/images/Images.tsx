@@ -75,11 +75,15 @@ const ASCIIArt = async (file: File): Promise<File> => {
 const loadImage = (file: File): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = (e: any) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = reject;
-            img.src = e.target.result;
+        reader.onload = (e: ProgressEvent<FileReader>) => {
+            if (e.target && e.target.result) {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = e.target.result as string;
+            } else {
+                reject(new Error('Failed to load image data.'));
+            }
         };
         reader.onerror = reject;
         reader.readAsDataURL(file);
@@ -119,8 +123,12 @@ const BWFilter = (file: File): Promise<File> => {
         const img = new Image();
         const reader = new FileReader();
 
-        reader.onload = (e: any) => {
-            img.src = e.target.result;
+        reader.onload = (e: ProgressEvent<FileReader>) => {
+            if (e.target && e.target.result) {
+                img.src = e.target.result as string;
+            } else {
+                reject(new Error('Failed to load image data.'));
+            }
         };
 
         reader.onerror = (err) => reject(err);
