@@ -2,6 +2,7 @@ import React, { useState, useRef, DragEvent, ChangeEvent } from 'react';
 import Image from 'next/image';
 import { ImageIcon, XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface FileObject {
   file: File;
@@ -18,7 +19,7 @@ export default function DragAndDrop({
   onFileUpload, 
   maxFiles = 5, 
   maxSizeMB = 5 
-}: ImageDragDropProps){
+}: ImageDragDropProps) {
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [files, setFiles] = useState<FileObject[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -105,17 +106,50 @@ export default function DragAndDrop({
     }
   };
 
+  const containerVariants = {
+    active: {
+      scale: 1.02,
+      borderColor: "rgb(209 213 219)",
+      transition: { duration: 0.2 }
+    },
+    inactive: {
+      scale: 1,
+      borderColor: "rgb(229 231 235)",
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const imageVariants = {
+    hidden: { 
+      opacity: 0,
+      scale: 0.8,
+      y: 20
+    },
+    visible: { 
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 20
+      }
+    },
+    exit: { 
+      opacity: 0,
+      scale: 0.5,
+      transition: {
+        duration: 0.2
+      }
+    }
+  };
+
   return (
-    <div
+    <motion.div
       ref={dropContainerRef}
-      className={`
-        w-full max-w-2xl border-dashed border-2 rounded-lg
-        transition-colors duration-200
-        ${dragActive 
-          ? 'border-gray-300 bg-gray-100' 
-          : 'border-gray-200 border-gray-300/80 dark:border-gray-800/80'
-        }
-      `}
+      variants={containerVariants}
+      animate={dragActive ? "active" : "inactive"}
+      className="w-full max-w-2xl border-dashed border rounded-lg"
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -130,12 +164,16 @@ export default function DragAndDrop({
         className="hidden"
       />
       <div>
-        <div className="w-full py-32 flex flex-col items-center gap-2 z-40">
+        <motion.div 
+          className="w-full py-32 flex flex-col items-center gap-2 z-40"
+          animate={{ scale: dragActive ? 1.1 : 1 }}
+          transition={{ duration: 0.2 }}
+        >
           <ImageIcon className="text-6xl z-40" />
           <span className="text-sm text-gray-500 dark:text-gray-400 z-40">
             Drag and Drop your image
           </span>
-        </div>
+        </motion.div>
         <div className="p-4 border-t grid gap-2 z-40">
           <Button onClick={() => inputRef.current?.click()}>
             Upload Image
@@ -143,22 +181,35 @@ export default function DragAndDrop({
         </div>
       </div>
       <div className="flex flex-wrap w-auto justify-center px-4 gap-4">
-        {files.map((fileObj, index) => (
-          <div key={index} className="relative">
-          <Image
-            src={fileObj.preview}
-            alt={`Preview of image number ${index}`}
-            width={200}
-            height={200}
-            className="aspect-square w-[200px] h-[200px] object-cover border border-zinc-200 w-auto rounded-lg overflow-hidden dark:border-zinc-800 mb-4"
-          />
-          <Button  onClick={() => removeFile(fileObj.file)} className="absolute top-1 right-1 h-6 w-6 p-1">
-            <XIcon className="h-4 w-4" />
-            <span className="sr-only">Remove image</span>
-          </Button>
-        </div>
-        ))}
+        <AnimatePresence mode="popLayout">
+          {files.map((fileObj, index) => (
+            <motion.div
+              key={fileObj.preview}
+              variants={imageVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              layout
+              className={`group relative ${files.length > 0 ? "mb-4" : ""}`}
+            >
+              <Image
+                src={fileObj.preview}
+                alt={`Preview of image number ${index}`}
+                width={200}
+                height={200}
+                className="aspect-square w-[200px] h-[200px] object-cover border border-zinc-200 w-auto rounded-lg overflow-hidden dark:border-zinc-800"
+              />
+              <Button
+                onClick={() => removeFile(fileObj.file)}
+                className="absolute top-1 right-1 h-6 w-6 p-1 hover:bg-red-500 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              >
+                <XIcon className="h-4 w-4" />
+                <span className="sr-only">Remove image</span>
+              </Button>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
-};
+}
