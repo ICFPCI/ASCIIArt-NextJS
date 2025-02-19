@@ -18,7 +18,7 @@ const ASCIIArt = async (file: File): Promise<File> => {
     const fileName = file.name.replace(/\.[^/.]+$/, ".png");
     let img = await loadImage(file);
     img = await resizeImageElement(img, img.width / 8, img.height / 8);
-    const texture = await loadTexture("/chars.png");
+    const texture = await loadTexture("/ASCIIArt-NextJS/chars.png");
 
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
