@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import DragAndDrop from "./dragdrop/DragAndDrop";
 import { useState } from "react";
-import { ASCIIArt, BWFilter } from "./images/Images";
+import { ASCIIArt } from "./images/Images";
 
 export default function Component() {
   const [showStartButton, setShowStartButton] = useState<boolean>(false);
